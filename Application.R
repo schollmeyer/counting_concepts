@@ -1,8 +1,37 @@
 
 
+estimate.concept.lattice.size=function(context,nrep){    #### Schätzt Anzahl von formalen Begriffen über Monte-Carlo-Simulation
+  m=dim(context)[2]
+  a=rep(0,nrep)
+  for(k in (1:nrep)){
+   temp=runif(m)>=0.5
+   H=oofos:::operator_closure_attr_input(temp,context)
+   if(all(H==temp)){a[k]=1}
+  }
+return(mean(a)*2^m)}
 
-
-
+est_cond_prob_k_antichain <- function(poset,k){
+	if(k==1){return(1)}
+	comparability <- pmax(poset,t(poset))
+	n_elements <- nrow(poset)
+	index_set <- seq_len(n_elements)
+	set <- NULL
+	size <- 1
+	for(i in seq_len(k)){
+		for(l in set){index_set <- setdiff(index_set,which(comparability[,l]==1))}
+		print("index_set")
+		print(index_set)
+		if(length(index_set)==0){return(0)}
+		
+		if(length(index_set)==1){set <- c(set,index_set[1])}
+		if(length(index_set)>1){set <- c(set,sample(index_set,size=1))}
+		print(set)
+		size <- size * length(index_set)
+		
+	}
+	#if(k==3){SETS <<- unique(rbind(SETS,set))}
+	return(size)}
+	return(length(index_set)/n_elements)
 
 
 
