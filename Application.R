@@ -1,6 +1,6 @@
 
 
-estimate.concept.lattice.size=function(context,nrep){    #### Schätzt Anzahl von formalen Begriffen über Monte-Carlo-Simulation
+estimate_concept_lattice_size=function(context,nrep){    #### Schätzt Anzahl von formalen Begriffen über Monte-Carlo-Simulation
   m=dim(context)[2]
   a=rep(0,nrep)
   for(k in (1:nrep)){
@@ -65,3 +65,7 @@ I=which( dat[,2]=="NICHT GENERIERBAR" | dat[,3]=="NICHT GENERIERBAR" | dat[,4] %
 dim(dat)
 I=c(1,2,3,5,6)
 dat <- dat[,I]
+
+context <- oofos:::get_auto_conceptual_scaling(dat)
+vc_model <- compute_extent_vc_dimension(context)
+vc_dimension <- gurobi(vc_model)
