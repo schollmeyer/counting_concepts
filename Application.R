@@ -1,4 +1,22 @@
+context_is_meet_distributive <- function(context){
+  context <- unique(context)
+  n_objects <- nrow(context)
+  for(k in seq_len(n_objects-1)){
+    for(l in ((k+1):n_objects)){
 
+     indexs <- which(context[k,]!=context[l,])
+     
+     indexs2 <- which(context[k,]==0 & context[l,]==0)
+     for( m in indexs2){
+      indexs3 <- which(context[,m]==1)
+      if(all(colSums(matrix(context[indexs3,indexs],nrow=length(indexs3)))<length(indexs3))){context[l,m]=1;context <<- context;print(c(k,l));print(m);print(indexs3);indexs <<- indexs;indexs2 <<- indexs2;indexs3 <<-indexs3;return(FALSE)}
+    }
+
+}
+
+
+}
+return(TRUE)}
 
 estimate_concept_lattice_size=function(context,nrep){    #### Schätzt Anzahl von formalen Begriffen über Monte-Carlo-Simulation
   m=dim(context)[2]
@@ -9,6 +27,52 @@ estimate_concept_lattice_size=function(context,nrep){    #### Schätzt Anzahl vo
    if(all(H==temp)){a[k]=1}
   }
 return(mean(a)*2^m)}
+
+
+is_freely_addable <- function(set,element,context){
+
+if(set[element]==1){return(FALSE)}
+if(all(set==0)){return(TRUE)}
+if((ddandrda:::operator_closure_obj_input(set,context))[element]==1){return(FALSE)}
+for(k in which(set==1)){
+
+new_set <- set
+new_set[k] <-0
+new_set[element] <- 1
+if((ddandrda:::operator_closure_obj_input(new_set,context))[k]==1){return(FALSE)}
+}
+
+return(TRUE)
+}
+
+
+est_cond_prob_k <- function(context,k){
+
+set <- rep(0,nrow(context))
+set[sample(seq_len(nrow(context)),size=1)] <- 1
+
+size <- as.numeric(nrow(context))
+while(TRUE){
+if(sum(set)==k){return(size)}
+indexs <- NULL
+for(i in seq_len(nrow(context))){
+   if(is_freely_addable(set,i,context)){
+      indexs <- c(indexs,i)
+    }
+}
+    if(is.null(indexs)){return(0)}
+    size <- size*length(indexs)
+    index <- sample(c(indexs,indexs),size=1)
+    set[index] <- 1
+#print(set)
+
+
+
+}
+}
+ a=est_cond_prob_k(context,7)
+
+
 
 est_cond_prob_k_antichain <- function(poset,k){
 	if(k==1){return(1)}
@@ -63,7 +127,7 @@ I=which( dat[,2]=="NICHT GENERIERBAR" | dat[,3]=="NICHT GENERIERBAR" | dat[,4] %
  dat[,9]=factor(dat[,9],ordered=FALSE)
 
 dim(dat)
-I=c(1,2,3,5,6)
+I=c(1,2,3,5,6,10)
 dat <- dat[,I]
 
 context <- oofos:::get_auto_conceptual_scaling(dat)
