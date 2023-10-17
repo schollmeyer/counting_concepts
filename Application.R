@@ -5,11 +5,15 @@ context_is_meet_distributive <- function(context){
     for(l in ((k+1):n_objects)){
 
      indexs <- which(context[k,]!=context[l,])
-     
+
      indexs2 <- which(context[k,]==0 & context[l,]==0)
      for( m in indexs2){
       indexs3 <- which(context[,m]==1)
-      if(all(colSums(matrix(context[indexs3,indexs],nrow=length(indexs3)))<length(indexs3))){context[l,m]=1;context <<- context;print(c(k,l));print(m);print(indexs3);indexs <<- indexs;indexs2 <<- indexs2;indexs3 <<-indexs3;return(FALSE)}
+      if(all(colSums(matrix(context[indexs3,indexs],nrow=length(indexs3)))<length(indexs3))){context[l,m]=1;return(list(result=FALSE,new_context=context))}
+
+
+
+      #context <<- context;print(c(k,l));print(m);print(indexs3);indexs <<- indexs;indexs2 <<- indexs2;indexs3 <<-indexs3;return(FALSE)}
     }
 
 }
@@ -86,12 +90,12 @@ est_cond_prob_k_antichain <- function(poset,k){
 		print("index_set")
 		print(index_set)
 		if(length(index_set)==0){return(0)}
-		
+
 		if(length(index_set)==1){set <- c(set,index_set[1])}
 		if(length(index_set)>1){set <- c(set,sample(index_set,size=1))}
 		print(set)
 		size <- size * length(index_set)
-		
+
 	}
 	#if(k==3){SETS <<- unique(rbind(SETS,set))}
 	return(size)}
@@ -113,10 +117,10 @@ library(foreign)
 a=read.spss("ZA5270_v2-0-0.sav")
 dat=data.frame(a$sex,a$age,a$iscd11, a$J007_1,  a$incc, a$dw01, a$id02, a$J006,   a$dm02c,a$pa02,a$pk01,a$pk02,a$pk03,a$pk04,a$pk05,a$pk06,a$pk07,a$pk08,a$pk09, a$pv01,a$wghtpew)
 
-I=which( dat[,2]=="NICHT GENERIERBAR" | dat[,3]=="NICHT GENERIERBAR" | dat[,4] %in% c("KEIN ISSP", "KEIN ISSP RELIGION","KEINE ANGABE", "KANN NICHT SAGEN") | dat[,5]=="NICHT GENERIERBAR"|dat[,6] %in% c("DATENFEHLER","KEINE ANGABE")|dat[,7]%in%c("KEINER DER SCHICHTEN","KEINE ANGABE","WEISS NICHT","VERWEIGERT")|dat[,8]%in%c("KEIN ISSP","KEIN ISSP RELIGION","KEINE ANGABE","KANN NICHT SAGEN") |dat[,10]=="KEINE ANGABE"|dat[,20]=="NEUE BUNDESLAENDER"|dat[,9]=="KEINE ANGABE"|dat[,21]=="NEUE BUNDESLAENDER") 
-        
- dat=dat[-I,] 
- 
+I=which( dat[,2]=="NICHT GENERIERBAR" | dat[,3]=="NICHT GENERIERBAR" | dat[,4] %in% c("KEIN ISSP", "KEIN ISSP RELIGION","KEINE ANGABE", "KANN NICHT SAGEN") | dat[,5]=="NICHT GENERIERBAR"|dat[,6] %in% c("DATENFEHLER","KEINE ANGABE")|dat[,7]%in%c("KEINER DER SCHICHTEN","KEINE ANGABE","WEISS NICHT","VERWEIGERT")|dat[,8]%in%c("KEIN ISSP","KEIN ISSP RELIGION","KEINE ANGABE","KANN NICHT SAGEN") |dat[,10]=="KEINE ANGABE"|dat[,20]=="NEUE BUNDESLAENDER"|dat[,9]=="KEINE ANGABE"|dat[,21]=="NEUE BUNDESLAENDER")
+
+ dat=dat[-I,]
+
  dat[,2]=factor(dat[,2],ordered=TRUE)
  dat[,3]=factor(dat[,3],ordered=TRUE)
  dat[,4]=factor(dat[,4],ordered=TRUE)
@@ -131,5 +135,6 @@ I=c(1,2,3,5,6,10)
 dat <- dat[,I]
 
 context <- oofos:::get_auto_conceptual_scaling(dat)
-vc_model <- compute_extent_vc_dimension(context)
-vc_dimension <- gurobi(vc_model)
+vc_model <- oofos:::compute_extent_vc_dimension(context)
+vc_dimension <- gurobi::gurobi(vc_model)
+#VC dimension \in \{9,10\}
