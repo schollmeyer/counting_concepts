@@ -134,7 +134,16 @@ dim(dat)
 I=c(1,2,3,5,6,10)
 dat <- dat[,I]
 
-context <- oofos:::get_auto_conceptual_scaling(dat)
+y <- dat[,6] %in% c("SEHR STARK", "STARK")
+table(y)
+objective <- oofos:::compute_objective(data.frame(y=y),"y","TRUE")
+table(objective)
+context <- oofos:::get_auto_conceptual_scaling(Z[,-1]+rnorm(length(Z[,-1]),sd=0.000001))#dat[,-6])
 vc_model <- oofos:::compute_extent_vc_dimension(context)
 vc_dimension <- gurobi::gurobi(vc_model)
 #VC dimension \in \{9,10\}
+
+model <- oofos:::optimize_on_context_extents(context,seq_len(nrow(context)),objective,binary_variables="all")
+result <- gurobi::gurobi(model)
+
+
