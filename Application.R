@@ -117,7 +117,12 @@ library(foreign)
 a=read.spss("ZA5270_v2-0-0.sav")
 dat=data.frame(a$sex,a$age,a$iscd11, a$J007_1,  a$incc, a$dw01, a$id02, a$J006,   a$dm02c,a$pa02,a$pk01,a$pk02,a$pk03,a$pk04,a$pk05,a$pk06,a$pk07,a$pk08,a$pk09, a$pv01,a$wghtpew)
 
-I=which( dat[,2]=="NICHT GENERIERBAR" | dat[,3]=="NICHT GENERIERBAR" | dat[,4] %in% c("KEIN ISSP", "KEIN ISSP RELIGION","KEINE ANGABE", "KANN NICHT SAGEN") | dat[,5]=="NICHT GENERIERBAR"|dat[,6] %in% c("DATENFEHLER","KEINE ANGABE")|dat[,7]%in%c("KEINER DER SCHICHTEN","KEINE ANGABE","WEISS NICHT","VERWEIGERT")|dat[,8]%in%c("KEIN ISSP","KEIN ISSP RELIGION","KEINE ANGABE","KANN NICHT SAGEN") |dat[,10]=="KEINE ANGABE"|dat[,20]=="NEUE BUNDESLAENDER"|dat[,9]=="KEINE ANGABE"|dat[,21]=="NEUE BUNDESLAENDER")
+#I=which( dat[,2]=="NICHT GENERIERBAR" | dat[,3]=="NICHT GENERIERBAR" | dat[,4] %in% c("KEIN ISSP", "KEIN ISSP RELIGION","KEINE ANGABE", "KANN NICHT SAGEN") | dat[,5]=="NICHT GENERIERBAR"|dat[,6] %in% c("DATENFEHLER","KEINE ANGABE")|dat[,7]%in%c("KEINER DER SCHICHTEN","KEINE ANGABE","WEISS NICHT","VERWEIGERT")|dat[,8]%in%c("KEIN ISSP","KEIN ISSP RELIGION","KEINE ANGABE","KANN NICHT SAGEN") |dat[,10]=="KEINE ANGABE"|dat[,20]=="NEUE BUNDESLAENDER"|dat[,9]=="KEINE ANGABE"|dat[,21]=="NEUE BUNDESLAENDER")
+
+I=which( dat[,2]=="NICHT GENERIERBAR" | dat[,3]=="NICHT GENERIERBAR" |  dat[,5]=="NICHT GENERIERBAR"|dat[,6] %in% c("DATENFEHLER","KEINE ANGABE")|dat[,7]%in%c("KEINER DER SCHICHTEN","KEINE ANGABE","WEISS NICHT","VERWEIGERT")|dat[,10]=="KEINE ANGABE"|dat[,20]=="NEUE BUNDESLAENDER"|dat[,9]=="KEINE ANGABE"|dat[,21]=="NEUE BUNDESLAENDER")
+
+
+
 
  dat=dat[-I,]
 
@@ -133,12 +138,14 @@ I=which( dat[,2]=="NICHT GENERIERBAR" | dat[,3]=="NICHT GENERIERBAR" | dat[,4] %
 dim(dat)
 I=c(1,2,3,5,6,10)
 dat <- dat[,I]
+ context<- oofos:::get_auto_conceptual_scaling(dat[,-c(1,5,6)])
 
 y <- dat[,6] %in% c("SEHR STARK", "STARK")
 table(y)
 objective <- oofos:::compute_objective(data.frame(y=y),"y","TRUE")
 table(objective)
-context <- oofos:::get_auto_conceptual_scaling(Z[,-1]+rnorm(length(Z[,-1]),sd=0.000001))#dat[,-6])
+
+context <- oofos:::get_auto_conceptual_scaling(dat[,-6])#Z)#[,-1]+rnorm(length(Z[,-1]),sd=0.000001))#dat[,-6])
 vc_model <- oofos:::compute_extent_vc_dimension(context)
 vc_dimension <- gurobi::gurobi(vc_model)
 #VC dimension \in \{9,10\}
@@ -146,4 +153,12 @@ vc_dimension <- gurobi::gurobi(vc_model)
 model <- oofos:::optimize_on_context_extents(context,seq_len(nrow(context)),objective,binary_variables="all")
 result <- gurobi::gurobi(model)
 
+Z <- array(0,c(nrow(dat),4))
+for(k in (1:4)){Z[,k] <- as.numeric(dat[,k+1])}
+
+context2 <- oofos:::get_auto_conceptual_scaling(Z+rnorm(length(Z),sd=0.00000001))
+dim(context)
+dim(context2)
+model <- oofos:::optimize_on_context_extents(context2,seq_len(nrow(context2)),objective,binary_variables="all")
+result2 <- gurobi::gurobi(model2)
 
