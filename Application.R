@@ -9,7 +9,7 @@ context_is_meet_distributive <- function(context){
      indexs2 <- which(context[k,]==0 & context[l,]==0)
      for( m in indexs2){
       indexs3 <- which(context[,m]==1)
-      if(length(indexs)>=1){
+      if(length(indexs3)>=1){
          if(all(colSums(matrix(context[indexs3,indexs],nrow=length(indexs3)))<length(indexs3))){context[l,m]=1;return(list(result=FALSE,new_context=context))}
       }
 
