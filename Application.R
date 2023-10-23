@@ -21,7 +21,7 @@ context_is_meet_distributive <- function(context){
 
 
 }
-return(TRUE)}
+return(list(result=TRUE))}
 
 estimate_concept_lattice_size=function(context,nrep){    #### Schätzt Anzahl von formalen Begriffen über Monte-Carlo-Simulation
   m=dim(context)[2]
