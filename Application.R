@@ -1,5 +1,5 @@
 context_is_meet_distributive <- function(context){
-  context <- unique(context)
+  #context <- unique(context)
   n_objects <- nrow(context)
   for(k in seq_len(n_objects-1)){
     for(l in ((k+1):n_objects)){
