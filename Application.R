@@ -20,7 +20,7 @@ context_is_meet_distributive <- function(context){
 
 
 }
-return(TRUE)}
+return(list(result=TRUE))}
 
 estimate_concept_lattice_size=function(context,nrep){    #### Schätzt Anzahl von formalen Begriffen über Monte-Carlo-Simulation
   m=dim(context)[2]
@@ -50,14 +50,14 @@ return(TRUE)
 }
 
 
-est_cond_prob_k <- function(context,k){
+estimate_size_mingen_k <- function(context,k){
 
 set <- rep(0,nrow(context))
 set[sample(seq_len(nrow(context)),size=1)] <- 1
 
 size <- as.numeric(nrow(context))
 while(TRUE){
-if(sum(set)==k){return(size)}
+if(sum(set)==k){return(size/factorial(k))}
 indexs <- NULL
 for(i in seq_len(nrow(context))){
    if(is_freely_addable(set,i,context)){
@@ -74,7 +74,6 @@ for(i in seq_len(nrow(context))){
 
 }
 }
- a=est_cond_prob_k(context,7)
 
 
 
@@ -98,8 +97,8 @@ est_cond_prob_k_antichain <- function(poset,k){
 
 	}
 	#if(k==3){SETS <<- unique(rbind(SETS,set))}
-	return(size)}
-	return(length(index_set)/n_elements)
+	return(size/factorial(k))}
+
 
 
 
@@ -138,27 +137,56 @@ I=which( dat[,2]=="NICHT GENERIERBAR" | dat[,3]=="NICHT GENERIERBAR" |  dat[,5]=
 dim(dat)
 I=c(1,2,3,5,6,10)
 dat <- dat[,I]
- context<- oofos:::get_auto_conceptual_scaling(dat[,-c(1,5,6)])
+ context<- oofos:::get_auto_conceptual_scaling(dat[,-c(1,2,5,6)])
 
 y <- dat[,6] %in% c("SEHR STARK", "STARK")
 table(y)
 objective <- oofos:::compute_objective(data.frame(y=y),"y","TRUE")
 table(objective)
 
-context <- oofos:::get_auto_conceptual_scaling(dat[,-6])#Z)#[,-1]+rnorm(length(Z[,-1]),sd=0.000001))#dat[,-6])
+
+model <- oofos:::optimize_on_context_extents(context,seq_len(nrow(context)),objective)
+result <- gurobi::gurobi(model)
+
+#with weighted representation:
+
+wdat <- get_weighted_representation(dat[,-c(1,2,5,6)])
+wcontext <- oofos:::get_auto_conceptual_scaling(wdat$x_wieghted)
+#context <- oofos:::get_auto_conceptual_scaling(dat[,-6])#Z)#[,-1]+rnorm(length(Z[,-1]),sd=0.000001))#dat[,-6])
 vc_model <- oofos:::compute_extent_vc_dimension(context)
 vc_dimension <- gurobi::gurobi(vc_model)
 #VC dimension \in \{9,10\}
 
-model <- oofos:::optimize_on_context_extents(context,seq_len(nrow(context)),objective,binary_variables="all")
-result <- gurobi::gurobi(model)
+n_rep <- 2
+sizes <- array(0,c(6,n_rep))
+for(k in (1:6)){
+  for(l in (1:n_rep)){
+    sizes[k,l] <- estimate_size_mingen_k(context,k)
+  }
+  print(k)
+  print(sizes[k,])
+}
 
-Z <- array(0,c(nrow(dat),4))
-for(k in (1:4)){Z[,k] <- as.numeric(dat[,k+1])}
+plot(rowMeans(sizes))
 
-context2 <- oofos:::get_auto_conceptual_scaling(Z+rnorm(length(Z),sd=0.00000001))
+
+N<- 912
+size <- sum(rowMeans(sizes))
+
+eps <- result$objval
+
+size*exp(-eps*N)
+
+
+
 dim(context)
 dim(context2)
-model <- oofos:::optimize_on_context_extents(context2,seq_len(nrow(context2)),objective,binary_variables="all")
+
+dat <- dat[,-c(1,2,5,6)]
+
+Z <- array(0,c(nrow(dat),2))
+for(k in (1:2)){Z[,k] <- as.numeric(dat[,k])}
+context2 <- oofos:::get_auto_conceptual_scaling(Z+rnorm(length(Z),sd=0.00000001))
+model2 <- oofos:::optimize_on_context_extents(context2,seq_len(nrow(context2)),objective,binary_variables="all")
 result2 <- gurobi::gurobi(model2)
 
