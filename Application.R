@@ -1,5 +1,5 @@
 context_is_meet_distributive <- function(context){
-  context <- unique(context)
+  #context <- unique(context)
   n_objects <- nrow(context)
   for(k in seq_len(n_objects-1)){
     for(l in ((k+1):n_objects)){
@@ -9,8 +9,9 @@ context_is_meet_distributive <- function(context){
      indexs2 <- which(context[k,]==0 & context[l,]==0)
      for( m in indexs2){
       indexs3 <- which(context[,m]==1)
-      if(all(colSums(matrix(context[indexs3,indexs],nrow=length(indexs3)))<length(indexs3))){context[l,m]=1;return(list(result=FALSE,new_context=context))}
-
+      if(length(indexs3)>=1){
+         if(all(colSums(matrix(context[indexs3,indexs],nrow=length(indexs3)))<length(indexs3))){context[l,m]=1;return(list(result=FALSE,new_context=context))}
+      }
 
 
       #context <<- context;print(c(k,l));print(m);print(indexs3);indexs <<- indexs;indexs2 <<- indexs2;indexs3 <<-indexs3;return(FALSE)}
