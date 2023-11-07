@@ -1,3 +1,21 @@
+is_minimal_generator <- function(set,context){
+  extent <- ddandrda:::operator_closure_obj_input(set,context)
+  if(sum(set)==0){return(TRUE)}
+  indexs <- which(set==1)
+  for(k in indexs){
+    new_set <- set;new_set[k] <- 0
+    new_extent <- ddandrda:::operator_closure_obj_input(new_set,context)
+    if(all(extent==new_extent)){return(FALSE)}
+  }
+  return(TRUE)
+
+
+}
+
+
+
+
+
 context_is_meet_distributive <- function(context){
   #context <- unique(context)
   n_objects <- nrow(context)
