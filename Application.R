@@ -28,7 +28,7 @@ context_is_meet_distributive <- function(context){
      for( m in indexs2){
       indexs3 <- which(context[,m]==1)
       if(length(indexs3)>=1){
-         if(all(colSums(matrix(context[indexs3,indexs],nrow=length(indexs3)))<length(indexs3))){context[l,m]=1;return(list(result=FALSE,new_context=context))}
+         if(all(colSums(matrix(context[indexs3,indexs],nrow=length(indexs3)))<length(indexs3))){context[l,m]=1;m <<- m;l <<- l; k <<- k;indexs <<- indexs; indexs2 <<- indexs2; indexs3 <<- indexs3;return(list(result=FALSE,new_context=context))}
       }
 
 
@@ -52,17 +52,17 @@ estimate_concept_lattice_size=function(context,nrep){    #### Schätzt Anzahl vo
 return(mean(a)*2^m)}
 
 
-is_freely_addable <- function(set,element,context){
+is_freely_addable <- function(set,element,context,hop=ddandrda:::operator_closure_obj_input){
 
 if(set[element]==1){return(FALSE)}
 if(all(set==0)){return(TRUE)}
-if((ddandrda:::operator_closure_obj_input(set,context))[element]==1){return(FALSE)}
+if((hop(set,context))[element]==1){return(FALSE)}
 for(k in which(set==1)){
 
 new_set <- set
 new_set[k] <-0
 new_set[element] <- 1
-if((ddandrda:::operator_closure_obj_input(new_set,context))[k]==1){return(FALSE)}
+if((hop(new_set,context,...))[k]==1){return(FALSE)}
 }
 
 return(TRUE)
@@ -95,6 +95,74 @@ for(i in seq_len(nrow(context))){
 }
 
 
+## geometry
+
+
+is_freely_addable_geometry <- function(set,element,context,hop=convex.H.obj,bg){
+
+  if(set[element]==1){return(FALSE)}
+  if(all(set==0)){return(TRUE)}
+  if((hop(set,bg))[element]==1){return(FALSE)}
+  for(k in which(set==1)){
+
+    new_set <- set
+    new_set[k] <-0
+    new_set[element] <- 1
+    if((hop(new_set,bg))[k]==1){return(FALSE)}
+  }
+
+  return(TRUE)
+}
+
+
+estimate_size_mingen_k_geometry <- function(context,k,bg){
+
+  set <- rep(0,nrow(context))
+  set[sample(seq_len(nrow(context)),size=1)] <- 1
+
+  size <- as.numeric(nrow(context))
+  while(TRUE){
+    if(sum(set)==k){return(size/factorial(k))}
+    indexs <- NULL
+    for(i in seq_len(nrow(context))){
+      if(is_freely_addable_geometry(set,i,context,bg=bg)){
+        indexs <- c(indexs,i)
+      }
+    }
+    if(is.null(indexs)){return(0)}
+    size <- size*length(indexs)
+    index <- sample(c(indexs,indexs),size=1)
+    set[index] <- 1
+    #print(set)
+
+
+
+  }
+}
+
+
+convex.H.obj2=function(A,bg){ ##  benötigt Package geometry und Package Biobase, macht das gleiche wie  convex.H.obj, scheint aber oft schneller zu sein als convex.H.obj
+  A <<- A
+
+  if(sum(A)==1){return(A)}
+  if(sum(A) !=3){return(H.obj(A,bg))}
+  temp=cart2bary(bg$X[as.logical(A),],bg$X)
+  if(is.null(temp)){print("warning: degenerate simplex");return(H.obj(A,bg))}
+  temp2=rowMin(temp)>=0
+  return(temp2*1)}
+
+
+
+convex.H.obj=function(A,bg){## Huellenoperator Phi \circ Psi speziell fuer einen Geomtrie-Kontext (also mit G= Punkte in R^2 und M Halbräume
+  ## benötigt Package geometry
+  A <<- A
+  if(sum(A)<=1){return(A)}
+  if(sum(A)==2){return(H.obj(A,bg))}
+  P <- try(convhulln(bg$X[which(A==1),]),silent=TRUE)
+  if(class(P)[1]=="try-error"){return(H.obj(A,bg))}
+  ans <- inhulln(P,as.matrix(bg$X))
+  return(ans*1)}
+
 
 est_cond_prob_k_antichain <- function(poset,k){
 	if(k==1){return(1)}
@@ -126,7 +194,7 @@ est_cond_prob_k_antichain <- function(poset,k){
 
 
 
-
+if(FALSE){
 
 
 
@@ -208,4 +276,4 @@ for(k in (1:2)){Z[,k] <- as.numeric(dat[,k])}
 context2 <- oofos:::get_auto_conceptual_scaling(Z+rnorm(length(Z),sd=0.00000001))
 model2 <- oofos:::optimize_on_context_extents(context2,seq_len(nrow(context2)),objective,binary_variables="all")
 result2 <- gurobi::gurobi(model2)
-
+}
