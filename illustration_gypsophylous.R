@@ -45,6 +45,21 @@ points(X[dead,],pch=3,col="black")
  model2 <- simplify.geometry.model(model)
  optimization_result <- gurobi(model2,list(timelimit=600))
 
+## under H0
+n_rep <- 100
+optimization_results_h0 <- list()
+objvals <- rep(0,n_rep)
+set.seed(1234567)
+for(k in (1:n_rep)){
+model$obj <- sample(model$obj)
+model2 <- simplify.geometry.model(model)
+optimization_results_h0[[k]] <- gurobi(model2,list(timelimit=6000))
+objvals[k] <- optimization_results_h0[[k]] $objval
+print(mean(objvals[(1:k)]>=optimization_result$objval))
+}
+
+
+
  ?n_est <- 10^15
    eps <- optimization_result$objval
    n <- min(table(model$obj))
