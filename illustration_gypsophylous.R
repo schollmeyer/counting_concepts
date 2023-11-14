@@ -1,10 +1,20 @@
 library(ecespa)
 library(gurobi)
-
+library(Biobase)
+library(geometry)
 data(gypsophylous)
 x <- gypsophylous$x
 y <- gypsophylous$y
-X <-cbind(x,y)
+X <-cbind(as.numeric(x),as.numeric(y))
+
+N <- 300
+X <- X[(1:N),]
+
+
+bg=convex.incidence(X)
+DIST=as.matrix(dist(X))
+model=MILP.from.generic.base.from.convex.incidence(bg,DIST=as.matrix(dist(X)),maxdist=Inf,HOP=convex.H.obj)
+
 
 
 plot(X,col="white")
@@ -54,7 +64,7 @@ for(k in (1:n_rep)){
 model$obj <- sample(model$obj)
 model2 <- simplify.geometry.model(model)
 optimization_results_h0[[k]] <- gurobi(model2,list(timelimit=6000))
-objvals[k] <- optimization_results_h0[[k]] $objval
+objvals[k] <- optimization_results_h0[[k]]$objval
 print(mean(objvals[(1:k)]>=optimization_result$objval))
 }
 
@@ -106,18 +116,18 @@ for(k in (1:100)){
 
 n_rep <- 2
 k_max <- 25
-ans <- array(0,c(n_rep,k_max))
+estimated_sizes <- array(0,c(n_rep,k_max))
 for( k in (1:k_max)){
 for(l in (1:n_rep)){
 
-ans[l,k] <- estimate_size_mingen_k_geometry(bg$context,k,bg)
+  estimated_sizes[l,k] <- estimate_size_mingen_k_geometry(bg$context,k,bg)
 print(ans[l,k])
 
 }}
-n_est <- sum(colMeans(ans))
-n_est*exp(-min(table(model$obj)*ans$objval^2))
+n_est <- sum(colMeans(estimated_sizes))
+n_est*exp(-min(table(model$obj)*optimization_result$objval^2))
 
- model=MILP.from.generic.base.from.convex.incidence(bg,DIST=as.matrix(dist(X)),maxdist=Inf,HOP=convex.H.obj2)
+
  model$obj=v
  ans=gurobi(model)
 

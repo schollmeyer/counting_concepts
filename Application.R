@@ -147,7 +147,7 @@ convex.H.obj2=function(A,bg){ ##  benötigt Package geometry und Package Biobase
   if(sum(A)==1){return(A)}
   if(sum(A) !=3){return(H.obj(A,bg))}
   temp=cart2bary(bg$X[as.logical(A),],bg$X)
-  if(is.null(temp)){print("warning: degenerate simplex");return(H.obj(A,bg))}
+  if(is.null(temp)){print("warning: degenerate simplex");return(H.obj(A,bg$context))}
   temp2=rowMin(temp)>=0
   return(temp2*1)}
 
@@ -157,11 +157,88 @@ convex.H.obj=function(A,bg){## Huellenoperator Phi \circ Psi speziell fuer einen
   ## benötigt Package geometry
   A <<- A
   if(sum(A)<=1){return(A)}
-  if(sum(A)==2){return(H.obj(A,bg))}
+  if(sum(A)==2){return(H.obj(A,bg$context))}
   P <- try(convhulln(bg$X[which(A==1),]),silent=TRUE)
-  if(class(P)[1]=="try-error"){return(H.obj(A,bg))}
+  if(class(P)[1]=="try-error"){return(H.obj(A,bg$context))}
   ans <- inhulln(P,as.matrix(bg$X))
   return(ans*1)}
+
+H.attr=function(A,context){PSI(PHI(A,context),context)} ## Berechnet zu Merkmalsmenge A (gegeben durch A[i]=1 iff Merkmal i ist in Menge A, 0 sonst) deren Hülle PSI(PHI(A))
+H.obj=function(A,context){PHI(PSI(A,context),context)} ## Berechnet zu Gegenstandsmenge A (gegeben durch A[i]=1 iff Gegenstand i ist in Menge A, 0 sonst) deren Hülle PHI(PSI(A))
+
+
+MILP.from.generic.base.from.convex.incidence=function(bg,binary=TRUE,max.card=dim(bg$context)[2],DIST,maxdist,HOP=convex.H.obj2){
+
+  ## erzeugt MILP Model ueber die Implementation von Contsraints, die das Repsektieren der generischen (Gegenstands-) Implikationsbasis sicherstellen
+
+  ##hieß früher LP.from.convex.incidence.simple
+
+  # bg:Liste mit Objekt context, das Kontext und Objekt X, das ursprüngliche Datenmatrix X enthält
+
+  n=dim(bg$context)[1]
+  N=choose(n,3)
+  T=1
+  tt=1
+  D=rep(0,N)
+  ii=rep(1/2,floor(N*n/2.5))
+  jj=  rep(1/2,floor(N*n/2.5))
+  vvv=rep(1/2,floor(N*n/2.5))
+  tt=1
+  indexs=array(0,c(N,3))
+  # A <-simple_triplet_matrix(1,1,0,nrow=N,ncol=n)# sparseMatrix((0),nr=N,nc=n)# Matrix(nrow=N,ncol=n,sparse=TRUE)#simple_triplet_zero_matrix(nrow=N,ncol=n)#simple_sparse_array(i=0,v=0,dim=c(N,n))#,sparse=TRUE)#array(as.logical(0),c(N,n))
+  #sparseMatrix(i=2*n^4,j=n,dims=c(2*n^4,n))#sparseMatrix((0),nr=2*n^4,nc=n)
+  rhs=rep(0,N)
+  sense=rep(">=",N)
+  for(k in (1:(n-2))){
+    print(k)
+    for( l in ((k+1):(n-1))){
+      if(DIST[k,l]<=maxdist){
+        for(m in ((l+1):n)){
+          if(DIST[k,l]<maxdist & DIST[m,l]<=maxdist){
+            temp=rep(0,n)
+            temp[k]=1
+            temp[l]=1
+            temp[m]=1
+            D[T]=max(DIST[k,l],DIST[k,m],DIST[l,m])
+            H=HOP(temp,bg)#H.attr(temp,bg)HULL(k,l,m,bg)#H.attr(temp,bg)
+            H[c(k,l,m)]=0
+            i=which(H==1)
+            j=length(i)
+            if(j!=0){
+
+
+              ii[(tt:(tt+j-1))] <- T
+              jj[(tt:(tt+j-1))] <- i
+              vvv[(tt:(tt+j-1))]<- 1/j
+              tt=tt+j
+
+              ii[(tt:(tt+2))]=T
+              jj[(tt:(tt+2))]=c(k,l,m)
+              vvv[(tt:(tt+2))]=-1
+              tt=tt+3
+
+
+              #A[T,i]=1/j
+              sense[T]=">="
+              #A[T,c(k,l,m)]=-1
+              rhs[T]=-2
+
+              indexs[T,]=c(k,l,m)
+              T=T+1
+            }
+
+          }}} }}
+  T=T-1
+  tt=tt-3
+  ii=ii[(1:tt)]
+  jj=jj[(1:tt)]
+  vvv=vvv[(1:tt)]
+  gc()
+  model=list(A=simple_triplet_matrix(i=ii[(1:tt)],j=jj[(1:tt)],v=vvv[(1:tt)])  ,obj=NULL,modelsense="max",rhs=rhs[(1:T)],sense= sense[(1:T)],vtypes=rep('B',n) ,D=D,indexs=indexs)
+
+  return(model=model)}
+
+
 
 
 est_cond_prob_k_antichain <- function(poset,k){
