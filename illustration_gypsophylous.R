@@ -11,20 +11,31 @@ N <- 300
 X <- X[(1:N),]
 
 
+
+
 bg=convex.incidence(X)
 DIST=as.matrix(dist(X))
 model=MILP.from.generic.base.from.convex.incidence(bg,DIST=as.matrix(dist(X)),maxdist=Inf,HOP=convex.H.obj)
 
 
 
+idx <- which(DIST[22,]<=quantile(DIST[22,],0.4))
+y <- rep(0,300)
+set.seed(1234567)
+y[idx] <- runif(length(idx))<=0.8
+y[-idx] <-runif(300-length(idx)) <=0.1
 plot(X,col="white")
 
-alive=which(seedlings1$marks <= median(seedlings1$marks))
-dead=which(seedlings1$marks > median(seedlings1$marks))
+points(X[which(y==0),],pch=8,col="green")
+points(X[which(y==1),],pch=3,col="black")
+
+table(v)
+#alive=which(seedlings1$marks <= median(seedlings1$marks))
+#dead=which(seedlings1$marks > median(seedlings1$marks))
 
 
-points(X[alive,],pch=8,col="green")
-points(X[dead,],pch=3,col="black")
+#points(X[alive,],pch=8,col="green")
+#points(X[dead,],pch=3,col="black")
 
  #legend(80,125,legend=c("lebend","tot"),col=c("green","black"),pch=c(8,3))
 
@@ -37,23 +48,11 @@ points(X[dead,],pch=3,col="black")
 
 
 
- idx <- which(DIST[22,]<=quantile(DIST[22,],0.4))
- y <- rep(0,250)
- set.seed(1234567)
- y[idx] <- runif(length(idx))<=0.8
- y[-idx] <-runif(250-length(idx)) <=0.1
- plot(X,col="white")
-
- points(X[which(y==0),],pch=8,col="green")
- points(X[which(y==1),],pch=3,col="black")
 
 
 
- v <- oofos:::compute_objective(data.frame(y=y),"y","1")
- model$obj <- v
- model$A=as.matrix(model$A)
- model2 <- simplify.geometry.model(model)
- optimization_result <- gurobi(model2,list(timelimit=600))
+
+
 
 ## under H0
 n_rep <- 100
@@ -115,13 +114,13 @@ for(k in (1:100)){
 
 
 n_rep <- 2
-k_max <- 25
+k_max <- 30
 estimated_sizes <- array(0,c(n_rep,k_max))
 for( k in (1:k_max)){
 for(l in (1:n_rep)){
 
   estimated_sizes[l,k] <- estimate_size_mingen_k_geometry(bg$context,k,bg)
-print(ans[l,k])
+print(estimated_sizes[l,k])
 
 }}
 n_est <- sum(colMeans(estimated_sizes))
