@@ -1,3 +1,23 @@
+PHI=function(A,context){  ##  Ableitungsoperator Phi
+  i=which(A==1)
+  temp=as.matrix(context[,i])
+  dim(temp)=c(dim(context)[1],length(i))
+  S=rowSums(temp)
+  j=which(S==length(i))
+  ans=rep(0,dim(context)[1])
+  ans[j]=1
+  return(ans)}
+
+PSI=function(B,context){    ## Ableitungsoperator Psi
+  i=which(B==1)
+  temp=as.matrix(context[i,])
+  dim(temp)=c(length(i),dim(context)[2])
+  S=colSums(temp)
+  j=which(S==length(i))
+  ans=rep(0,dim(context)[2])
+  ans[j]=1
+  return(ans)}
+
 is_minimal_generator <- function(set,context){
   extent <- ddandrda:::operator_closure_obj_input(set,context)
   if(sum(set)==0){return(TRUE)}
@@ -139,6 +159,42 @@ estimate_size_mingen_k_geometry <- function(context,k,bg){
 
   }
 }
+
+
+convex.incidence=function(X){  ## gegeben Puntmenge von M Punkten in R^2 (uebergeben als M x 2 Matrix X), wird Kontext mit G= Menge der R^2 Punkte und M = Menge aller durch je zwei verschiedene Punkte aus G beschriebenen Halbräume sowie gIm iff Punkt g liegt in (abgeschlossenem) Halbraum m
+  n=dim(X)[1]
+  m=n*(n-1)/2
+  I1=array(0,c(n,m))
+  I2=I1
+  t=1
+  indexs=array(0,c(m,2))
+  NAMES=rep("",m)
+  NAMES2=rep("",m)
+  for(k in (1:(n-1))){
+    print(k)
+    for(l in ((k+1):n)){
+      NAMES[t]=paste(rownames(X)[c(k,l)],collapse="")
+      NAMES2[t]=paste(rownames(X)[c(l,k)],collapse="")
+
+      for(M in (1:n)){
+        v1=X[k,]-X[l,]
+        v2=X[M,]-X[l,]
+        indexs[t,]=c(k,l)
+        s=v1[1]*v2[2]-v1[2]*v2[1]
+        if(s>0){I1[M,t]=1}
+        if(s<0){I2[M,t]=1}
+        if(s==0){I2[M,t]=1;I1[M,t]=1}
+      }
+      t=t+1
+    }
+  }
+  colnames(I1)=NAMES
+  colnames(I2)=NAMES2
+  rownames(I1)=rownames(X)
+  rownames(I2)=rownames(X)
+
+  return(list(context=(cbind(I1,I2)),indexs=rbind(indexs,indexs),X=X))}
+
 
 
 convex.H.obj2=function(A,bg){ ##  benötigt Package geometry und Package Biobase, macht das gleiche wie  convex.H.obj, scheint aber oft schneller zu sein als convex.H.obj
