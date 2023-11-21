@@ -1,3 +1,6 @@
+bound <- function(n,m,eps,size){2*size*exp(-n/2*(n+m)/m*eps^2)}
+
+
 library(ecespa)
 library(gurobi)
 library(Biobase)
@@ -114,9 +117,9 @@ for(k in (1:100)){
 
 
 n_rep <- 20
-k_max <- 20
+k_max <- 33
 estimated_sizes <- array(0,c(n_rep,k_max))
-for( k in (10:k_max)){
+for( k in (1:k_max)){
 for(l in (1:n_rep)){
 
   estimated_sizes[l,k] <- estimate_size_mingen_k_geometry(bg$context,k,bg)

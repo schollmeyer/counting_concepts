@@ -82,7 +82,7 @@ for(k in which(set==1)){
 new_set <- set
 new_set[k] <-0
 new_set[element] <- 1
-if((hop(new_set,context,...))[k]==1){return(FALSE)}
+if((hop(new_set,context))[k]==1){return(FALSE)}
 }
 
 return(TRUE)
