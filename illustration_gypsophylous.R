@@ -116,7 +116,7 @@ for(k in (1:100)){
 
 
 
-n_rep <- 20
+n_rep <- 200
 k_max <- 33
 estimated_sizes <- array(0,c(n_rep,k_max))
 for( k in (1:k_max)){
@@ -126,7 +126,11 @@ for(l in (1:n_rep)){
 print(estimated_sizes[l,k])
 
 }}
-n_est <- sum(colMeans(estimated_sizes))
+
+z <- as.vector(estimated_sizes[,(1:10)]*10)
+n_est <- mean(z)
+t.test(z,conf.level=1-10^(-10))
+abc.ci(z,statistic=weighted.mean,conf=1-10^(-10))
 n_est*exp(-min(table(model$obj)*optimization_result$objval^2))
 
 

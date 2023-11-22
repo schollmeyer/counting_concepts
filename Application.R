@@ -141,12 +141,15 @@ estimate_size_mingen_k_geometry <- function(context,k,bg){
   set[sample(seq_len(nrow(context)),size=1)] <- 1
 
   size <- as.numeric(nrow(context))
+
   while(TRUE){
+    #print(which(set==1))
     if(sum(set)==k){return(size/factorial(k))}
     indexs <- NULL
     for(i in seq_len(nrow(context))){
       if(is_freely_addable_geometry(set,i,context,bg=bg)){
         indexs <- c(indexs,i)
+        #print(length(indexs))
       }
     }
     if(is.null(indexs)){return(0)}
@@ -211,10 +214,15 @@ convex.H.obj2=function(A,bg){ ##  benötigt Package geometry und Package Biobase
 
 convex.H.obj=function(A,bg){## Huellenoperator Phi \circ Psi speziell fuer einen Geomtrie-Kontext (also mit G= Punkte in R^2 und M Halbräume
   ## benötigt Package geometry
-  A <<- A
-  if(sum(A)<=1){return(A)}
+  #A <<- A
+  #print(sum(A))
+  #if(sum(A)==2){print("FFF")}
+  if(sum(A)<=2){return(A)}
   if(sum(A)==2){return(H.obj(A,bg$context))}
+  #P <- convhulln(bg$X[which(A==1),])
+  #print(P)
   P <- try(convhulln(bg$X[which(A==1),]),silent=TRUE)
+  #print(class(P))
   if(class(P)[1]=="try-error"){return(H.obj(A,bg$context))}
   ans <- inhulln(P,as.matrix(bg$X))
   return(ans*1)}
@@ -298,21 +306,21 @@ MILP.from.generic.base.from.convex.incidence=function(bg,binary=TRUE,max.card=di
 
 
 est_cond_prob_k_antichain <- function(poset,k){
-	if(k==1){return(1)}
+	if(k==1){return(nrow(poset))}
 	comparability <- pmax(poset,t(poset))
 	n_elements <- nrow(poset)
 	index_set <- seq_len(n_elements)
 	set <- NULL
-	size <- 1
+	size <- 1#nrow(poset)
 	for(i in seq_len(k)){
 		for(l in set){index_set <- setdiff(index_set,which(comparability[,l]==1))}
-		print("index_set")
-		print(index_set)
+		#print("index_set")
+		#print(index_set)
 		if(length(index_set)==0){return(0)}
 
 		if(length(index_set)==1){set <- c(set,index_set[1])}
 		if(length(index_set)>1){set <- c(set,sample(index_set,size=1))}
-		print(set)
+		#print(set)
 		size <- size * length(index_set)
 
 	}
