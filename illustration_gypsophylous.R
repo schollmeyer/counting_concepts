@@ -119,6 +119,7 @@ for(k in (1:100)){
 n_rep <- 200
 k_max <- 33
 estimated_sizes <- array(0,c(n_rep,k_max))
+start_time <- Sys.time()
 for( k in (1:k_max)){
 for(l in (1:n_rep)){
 
@@ -126,6 +127,10 @@ for(l in (1:n_rep)){
 print(estimated_sizes[l,k])
 
 }}
+
+end_time <- Sys.time()
+total_time <- Sys.time() - start_time
+total_time
 
 z <- as.vector(estimated_sizes[,(1:10)]*10)
 n_est <- mean(z)

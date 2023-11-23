@@ -201,7 +201,7 @@ convex.incidence=function(X){  ## gegeben Puntmenge von M Punkten in R^2 (ueberg
 
 
 convex.H.obj2=function(A,bg){ ##  benötigt Package geometry und Package Biobase, macht das gleiche wie  convex.H.obj, scheint aber oft schneller zu sein als convex.H.obj
-  A <<- A
+  #A <<- A
 
   if(sum(A)==1){return(A)}
   if(sum(A) !=3){return(H.obj(A,bg))}
