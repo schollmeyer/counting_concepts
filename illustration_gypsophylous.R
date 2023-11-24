@@ -118,8 +118,9 @@ for(k in (1:100)){
 
 
 #### estimating |S|
+
 n_rep <- 20
-k_max <- 5
+k_max <- 27
 estimated_sizes <- array(0,c(n_rep,k_max))
 set.seed(1234567)
 start_time <- Sys.time()
@@ -137,9 +138,9 @@ end_time <- Sys.time()
 total_time <- Sys.time() - start_time
 total_time
 
-z <- as.vector(estimated_sizes[,(1:10)]*10)
+z <- as.vector(estimated_sizes)*k_max
 n_est <- mean(z)
-t.test(z,conf.level=1-10^(-10))
+t.test(z,conf.level=1-10^(-10),alternative="less")
 abc.ci(z,statistic=weighted.mean,conf=1-10^(-10))
 n_est*exp(-min(table(model$obj)*optimization_result$objval^2))
 
