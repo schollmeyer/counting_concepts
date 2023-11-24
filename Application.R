@@ -1,3 +1,147 @@
+VC.MILP.from.generic.base.from.convex.incidence=function(bg,binary=TRUE,max.card=dim(bg$context)[2],DIST,maxdist,HOP=convex.H.obj2){
+
+  ## erzeugt MILP Model ueber die Implementation von Contsraints, die das Repsektieren der generischen (Gegenstands-) Implikationsbasis sicherstellen
+
+  ##hieß früher LP.from.convex.incidence.simple
+
+  # bg:Liste mit Objekt context, das Kontext und Objekt X, das ursprüngliche Datenmatrix X enthält
+
+  n=dim(bg$context)[1]
+  N=choose(n,3)
+  T=1
+  tt=1
+  D=rep(0,N)
+  ii=rep(1/2,floor(N*n/2.5))
+  jj=  rep(1/2,floor(N*n/2.5))
+  vvv=rep(1/2,floor(N*n/2.5))
+  tt=1
+  indexs=array(0,c(N,3))
+  # A <-simple_triplet_matrix(1,1,0,nrow=N,ncol=n)# sparseMatrix((0),nr=N,nc=n)# Matrix(nrow=N,ncol=n,sparse=TRUE)#simple_triplet_zero_matrix(nrow=N,ncol=n)#simple_sparse_array(i=0,v=0,dim=c(N,n))#,sparse=TRUE)#array(as.logical(0),c(N,n))
+  #sparseMatrix(i=2*n^4,j=n,dims=c(2*n^4,n))#sparseMatrix((0),nr=2*n^4,nc=n)
+  rhs=rep(0,N)
+  sense=rep(">=",N)
+  for(k in (1:(n-2))){
+    print(k)
+    for( l in ((k+1):(n-1))){
+      if(DIST[k,l]<=maxdist){
+        for(m in ((l+1):n)){
+          if(DIST[k,l]<maxdist & DIST[m,l]<=maxdist){
+            temp=rep(0,n)
+            temp[k]=1
+            temp[l]=1
+            temp[m]=1
+            D[T]=max(DIST[k,l],DIST[k,m],DIST[l,m])
+            H=HOP(temp,bg)#H.attr(temp,bg)HULL(k,l,m,bg)#H.attr(temp,bg)
+            H[c(k,l,m)]=0
+            i=which(H==1)
+            j=length(i)
+            if(j!=0){
+
+
+              ii[(tt:(tt+j-1))] <- T
+              jj[(tt:(tt+j-1))] <- i
+              vvv[(tt:(tt+j-1))]<- -1/j
+              tt=tt+j
+
+              ii[(tt:(tt+2))]=T
+              jj[(tt:(tt+2))]=c(k,l,m)
+              vvv[(tt:(tt+2))]=-1
+              tt=tt+3
+
+
+              #A[T,i]=1/j
+              sense[T]=">="
+              #A[T,c(k,l,m)]=-1
+              rhs[T]=-3
+
+              indexs[T,]=c(k,l,m)
+              T=T+1
+            }
+
+          }}} }}
+  T=T-1
+  tt=tt-3
+  ii=ii[(1:tt)]
+  jj=jj[(1:tt)]
+  vvv=vvv[(1:tt)]
+  gc()
+  model=list(A=simple_triplet_matrix(i=ii[(1:tt)],j=jj[(1:tt)],v=vvv[(1:tt)])  ,obj=rep(1,nrow(bg$X)),modelsense="max",rhs=rhs[(1:T)],sense= sense[(1:T)],vtypes=rep('B',n) ,D=D,indexs=indexs)
+
+  return(model=model)}
+
+
+
+
+DKW.ci <- function(z,p,upper_bound){
+  eps <- sqrt(-log(p/2)/2/length(z))
+  return(c(mean(z),mean(z)+eps*upper_bound))}
+
+
+
+
+estimate_size_mingen_k_new <- function(context,k){
+
+  set <- rep(0,nrow(context))
+  set[sample(seq_len(nrow(context)),size=1)] <- 1
+
+  size <- as.numeric(nrow(context))
+  remaining_indices <- seq_len(nrow(context))
+  while(TRUE){
+    if(sum(set)==k){return(size/factorial(k))}
+    indexs <- NULL
+
+    for(i in remaining_indices ){
+      if(is_freely_addable(set,i,context)){
+        indexs <- c(indexs,i)
+      }
+    }
+    remaining_indices <- indexs
+    if(is.null(indexs)){return(0)}
+    size <- size*length(indexs)
+    index <- sample(c(indexs,indexs),size=1)
+    set[index] <- 1
+    #print(set)
+
+
+
+  }
+}
+
+
+
+
+estimate_size_mingen_k_geometry_new <- function(context,k,bg){
+
+  set <- rep(0,nrow(context))
+  set[sample(seq_len(nrow(context)),size=1)] <- 1
+
+  size <- as.numeric(nrow(context))
+  remaining_indices <- seq_len(nrow(context))
+  while(TRUE){
+    #print(which(set==1))
+    if(sum(set)==k){return(size/factorial(k))}
+    indexs <- NULL
+    for(i in remaining_indices){
+      if(is_freely_addable_geometry(set,i,context,bg=bg)){
+        indexs <- c(indexs,i)
+        #print(length(indexs))
+      }
+    }
+    remaining_indices <- indexs
+    if(is.null(indexs)){return(0)}
+    size <- size*length(indexs)
+    index <- sample(c(indexs,indexs),size=1)
+    set[index] <- 1
+    #print(set)
+
+
+
+  }
+}
+
+
+
+
 PHI=function(A,context){  ##  Ableitungsoperator Phi
   i=which(A==1)
   temp=as.matrix(context[,i])

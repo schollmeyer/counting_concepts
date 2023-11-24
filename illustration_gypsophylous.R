@@ -10,8 +10,10 @@ x <- gypsophylous$x
 y <- gypsophylous$y
 X <-cbind(as.numeric(x),as.numeric(y))
 
-N <- 300
-X <- X[(1:N),]
+N <- 150#300
+
+#X <- X[(51:100),]
+X <- X[-(1:N),]
 
 
 
@@ -115,18 +117,21 @@ for(k in (1:100)){
   }
 
 
-
-n_rep <- 200
-k_max <- 33
+#### estimating |S|
+n_rep <- 20
+k_max <- 5
 estimated_sizes <- array(0,c(n_rep,k_max))
+set.seed(1234567)
 start_time <- Sys.time()
 for( k in (1:k_max)){
-for(l in (1:n_rep)){
+  KK <- as.numeric(k)
+ for(l in (1:n_rep)){
+  estimated_sizes[l,k] <- estimate_size_mingen_k_geometry_new(bg$context,k,bg)
+# print(estimated_sizes[l,k])
 
-  estimated_sizes[l,k] <- estimate_size_mingen_k_geometry(bg$context,k,bg)
-print(estimated_sizes[l,k])
+  }
 
-}}
+  print(k)}
 
 end_time <- Sys.time()
 total_time <- Sys.time() - start_time
