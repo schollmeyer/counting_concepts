@@ -88,7 +88,7 @@ v=wx/sum(wx)-wy/sum(wy)    ## Differenzvektor beschreibt Differenz der Anteile d
 XX=oofos:::get_weighted_representation(X,v)    ### gweichtete repräsentation vereinfacht berechnung (Personen mit gleicher Ausprägung werden zu einem Datenpunkt mit entsprechendem Gewicht
 
 
-I=oofos:::compute_incidence(XX$x_weighted)       #### Berechnung <= Relation I mit Interpretation x <= y iff x
+        #### Berechnung <= Relation I mit Interpretation x <= y iff x
 
 width <- oofos:::compute_width(I)
 # 33

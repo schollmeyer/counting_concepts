@@ -1,4 +1,4 @@
-bound <- function(n,m,eps,size){2*size*exp(-n/2*(n+m)/m*eps^2)}
+union_bound <- function(n,m,eps,size){2*size*exp(-n/2*(n+m)/(m+1)*eps^2)}
 
 
 library(ecespa)
@@ -10,10 +10,10 @@ x <- gypsophylous$x
 y <- gypsophylous$y
 X <-cbind(as.numeric(x),as.numeric(y))
 
-N <- 150#300
+N <- 300# 150#300
 
 #X <- X[(51:100),]
-X <- X[-(1:N),]
+X <- X[(1:N),]
 
 
 
@@ -24,17 +24,40 @@ model=MILP.from.generic.base.from.convex.incidence(bg,DIST=as.matrix(dist(X)),ma
 
 
 
-idx <- which(DIST[22,]<=quantile(DIST[22,],0.4))
+idx <- which(DIST[22,]<=quantile(DIST[22,],0.5))
 y <- rep(0,300)
 set.seed(1234567)
-y[idx] <- runif(length(idx))<=0.8
-y[-idx] <-runif(300-length(idx)) <=0.1
+y[idx] <- runif(length(idx))<= 0.85#5 #0.8
+y[-idx] <-runif(300-length(idx)) <=0.2#15 #0.1
 plot(X,col="white")
 
 points(X[which(y==0),],pch=8,col="green")
 points(X[which(y==1),],pch=3,col="black")
 
-table(v)
+table(y)
+
+objective <- oofos:::compute_objective(data.frame(y=y),"y","1")
+model$obj <- objective
+model2 <- simplify.geometry.model(model)
+
+result <- gurobi(model2)
+n_est=5.7*10^15
+union_bound(n=min(table(y)),m=max(table(y)), eps =result$objval,size=n_est)
+
+
+
+set.seed(1234567)
+model_h0 <- model
+model_h0$obj <- sample(model_h0$obj)
+model_h0 <- simplify.geometry.model(model_h0)
+
+model_h0$A <- rbind(model_h0$A,matrix(model_h0$obj,nrow=1))
+model_h0$rhs <- c(model_h0$rhs,result$objval)
+model_h0$sense <- c(model_h0$sense,">=")
+model_h0$obj <- NULL
+result_h02 <- gurobi(model_h0)
+
+if(FALSE){
 #alive=which(seedlings1$marks <= median(seedlings1$marks))
 #dead=which(seedlings1$marks > median(seedlings1$marks))
 
@@ -96,7 +119,7 @@ model$obj[j] <- runif(length(j))<=0.15
 
 #for(k in (1:N)){model$obj[k] <- runif(1) <=exp(-DIST[1,k]/15)}
 #table(model$obj)
-model$obj <- oofos:::compute_objective(data.frame(y=model$obj),"y","1")
+model$obj <- oofos:::compute_objective(data.frame(y=y),"y","1")
 
 plot(X,col="white")
 
@@ -169,3 +192,4 @@ n_est*exp(-min(table(model$obj)*optimization_result$objval^2))
    print(mean(a[(1:k)]<=0.372468))
   }
 
+}
