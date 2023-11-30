@@ -1,4 +1,4 @@
-union_bound <- function(n,m,eps,size){2*size*exp(-n/2*(n+m)/(m+1)*eps^2)}
+union_bound <- function(n,m,eps,size){4*size*exp(-n/2*(n+m)/(m+1)*eps^2)}
 
 
 library(ecespa)
