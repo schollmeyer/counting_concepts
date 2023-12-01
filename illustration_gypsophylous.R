@@ -29,11 +29,16 @@ y <- rep(0,300)
 set.seed(1234567)
 y[idx] <- runif(length(idx))<= 0.85#5 #0.8
 y[-idx] <-runif(300-length(idx)) <=0.2#15 #0.1
-plot(X,col="white")
+plot(X,col="white",xlab="",ylab="")
 
 points(X[which(y==0),],pch=8,col="green")
 points(X[which(y==1),],pch=3,col="black")
+set.seed(1234567)
+yy <- sample(y)
+plot(X,col="white",xlab="",ylab="")
 
+points(X[which(yy==0),],pch=8,col="green")
+points(X[which(yy==1),],pch=3,col="black")
 table(y)
 
 objective <- oofos:::compute_objective(data.frame(y=y),"y","1")
