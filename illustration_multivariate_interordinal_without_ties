@@ -1,0 +1,30 @@
+n <- 100
+p <- 20
+set.seed(1234567)
+x <- rnorm(n*p);dim(x) <- c(n,p)
+context <- oofos:::get_auto_conceptual_scaling(x)
+h <- 2*p
+simple_factor <- (n^p)^2
+simple_factor
+# [1] 1.048576e+46
+
+vc_factor <- 1.5*n^(h)/factorial(h)
+vc_factor
+# [1] 6.464971e+27
+
+
+n_rep <- 2
+k_max <- 2*p
+estimated_sizes <- array(0,c(n_rep,k_max))
+for( k in (1:k_max)){
+  for(l in (1:n_rep)){
+
+    estimated_sizes[l,k] <-  estimate_size_mingen_k(context,k)
+    print(estimated_sizes[l,k])
+
+  }}
+  
+  
+ z <- as.vector(estimated_sizes)*k_max
+ 
+ vc_factor/mean(z)#/10^6
